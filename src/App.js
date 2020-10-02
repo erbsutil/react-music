@@ -29,29 +29,41 @@ class App extends React.Component {
   }
 
   componentDidMount(){
-    fetch(url_end, {
-      method: 'get',
-      headers: {
-        Authorization: `Bearer ${this.token}`
-      }
-    })
-    .then(response => response.json())
-    .then(data => 
-      this.setState({ 
-        item: data.items[random].id,
-        url: `https://open.spotify.com/embed/track/${data.items[random].id}`
+    if (!this.token) {
+      console.log("Você está deslogado")
+    } else {
+      fetch(url_end, {
+        method: 'get',
+        headers: {
+          Authorization: `Bearer ${this.token}`
+        }
       })
-    );
+      .then(response => response.json())
+      .then(data => 
+        this.setState({ 
+          item: data.items[random].id,
+          url: `https://open.spotify.com/embed/track/${data.items[random].id}`,
+        })
+      );
+    }
   }
-  
+
   render() {
     const { url } = this.state;
 
     return (
       <div className="App">
-        <button><a href="http://localhost:8888">Logar com Spotify</a></button>
-        {this.state.item ?
-          <iframe src={url} width="300" height="380" allowtransparency="true" allow="encrypted-media"></iframe> : <div>Buscando uma música favorita sua</div>
+        {this.token 
+          ? <p>Você está logado</p> 
+          : <button><a href="http://localhost:8888">Logar com Spotify</a></button>
+        }
+
+        {this.state.item 
+          ? <div>
+              <p>Uma música que você gosta:</p>
+              <iframe title="Spotify" src={url} width="300" height="380" allowtransparency="true" allow="encrypted-media"></iframe>
+            </div>
+          : <div>Sem dados sobre as músicas</div>
         }
       </div>
     );
