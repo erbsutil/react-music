@@ -2,12 +2,18 @@ import React from 'react';
 import './App.css';
 
 const url_end = 'https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=medium_term';
+const random = Math.floor(Math.random() * 50);
 
 class App extends React.Component {
   constructor(props){
     super();
     this.parametros = this.getHashParams();
     this.token = this.parametros.access_token;
+
+    this.state = {
+      item: "",
+      url: ""
+    };
   }
 
   getHashParams() {
@@ -30,6 +36,25 @@ class App extends React.Component {
       }
     })
     .then(response => response.json())
+    .then(data => 
+      this.setState({ 
+        item: data.items[random].id,
+        url: `https://open.spotify.com/embed/track/${data.items[random].id}`
+      })
+    );
+  }
+  
+  render() {
+    const { url } = this.state;
+
+    return (
+      <div className="App">
+        <button><a href="http://localhost:8888">Logar com Spotify</a></button>
+        {this.state.item ?
+          <iframe src={url} width="300" height="380" allowtransparency="true" allow="encrypted-media"></iframe> : <div>Buscando uma música favorita sua</div>
+        }
+      </div>
+    );
   }
 }
 
