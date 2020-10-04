@@ -6,7 +6,7 @@ export const songsEndpoint = 'https://api.spotify.com/v1/me/top/tracks?limit=50&
 const random = Math.floor(Math.random() * 50);
 
 const clientId = "ffe68d14725c4dc5ae6b29eaf45791a0";
-const redirectUri = "http://localhost:3000/callback";
+const redirectUri = "http://erbsutil.github.io/react-music/";
 const scopes = [
   "user-top-read"
 ];
@@ -82,9 +82,9 @@ class App extends Component {
         {this.state.token && (
           <iframe title="Spotify" src={this.state.url} width="300" height="380" allowtransparency="true" allow="encrypted-media"></iframe>
         )}
-   </div>
-  );
- }
+      </div>
+    );
+  }
 }
 
 export default App;
