@@ -1,73 +1,90 @@
-import React from 'react';
-import './App.css';
+import React, { Component } from "react";
+import "./App.css";
+export const authEndpoint = 'https://accounts.spotify.com/authorize';
+export const songsEndpoint = 'https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=medium_term'
 
-const url_end = 'https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=medium_term';
 const random = Math.floor(Math.random() * 50);
 
-class App extends React.Component {
-  constructor(props){
-    super();
-    this.parametros = this.getHashParams();
-    this.token = this.parametros.access_token;
+const clientId = "ffe68d14725c4dc5ae6b29eaf45791a0";
+const redirectUri = "http://localhost:3000/callback";
+const scopes = [
+  "user-top-read"
+];
 
+const hash = window.location.hash
+ .substring(1)
+ .split("&")
+ .reduce(function(initial, item) {
+   if (item) {
+     var parts = item.split("=");
+     initial[parts[0]] = decodeURIComponent(parts[1]);
+   }
+   return initial;
+}, {});
+  
+window.location.hash = "";
+
+class App extends Component {
+  constructor() {
+    super();
     this.state = {
+      token: null,
       item: "",
       url: ""
     };
+
+    this.getSong = this.getSong.bind(this);
   }
 
-  getHashParams() {
-    var hashParams = {};
-    var e, r = /([^&;=]+)=?([^&;]*)/g,
-        q = window.location.hash.substring(1);
-    e = r.exec(q)
-    while (e) {
-      hashParams[e[1]] = decodeURIComponent(e[2]);
-      e = r.exec(q);
-    }
-    return hashParams;
-  }
-
-  componentDidMount(){
-    if (!this.token) {
-      console.log("Você está deslogado")
-    } else {
-      fetch(url_end, {
-        method: 'get',
-        headers: {
-          Authorization: `Bearer ${this.token}`
-        }
+  getSong(token) {
+    fetch(songsEndpoint, {
+      method: 'get',
+      headers: {
+        Authorization: 'Bearer ' + token
+      }
+    })
+    .then(response => response.json())
+    .then(data => 
+      this.setState({ 
+        item: data.items[random].id,
+        url: `https://open.spotify.com/embed/track/${data.items[random].id}`,
       })
-      .then(response => response.json())
-      .then(data => 
-        this.setState({ 
-          item: data.items[random].id,
-          url: `https://open.spotify.com/embed/track/${data.items[random].id}`,
-        })
-      );
+    );
+  }
+
+  componentDidMount() {
+    let _token = hash.access_token;
+    if (_token) {
+      this.setState({
+        token: _token
+      });
+      this.getSong(_token);
     }
   }
 
   render() {
-    const { url } = this.state;
-
     return (
       <div className="App">
-        {this.token 
-          ? <p>Você está logado</p> 
-          : <button><a href="http://localhost:8888">Logar com Spotify</a></button>
-        }
-
-        {this.state.item 
-          ? <div>
-              <p>Uma música que você gosta:</p>
-              <iframe title="Spotify" src={url} width="300" height="380" allowtransparency="true" allow="encrypted-media"></iframe>
-            </div>
-          : <div>Sem dados sobre as músicas</div>
-        }
-      </div>
-    );
-  }
+        {!this.state.token && (
+          <div>
+            <a
+              className="btn btn--loginApp-link"
+              href={`${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join("%20")}&response_type=token&show_dialog=true`}
+            >
+              Login com Spotify
+            </a>
+            
+            <br />
+            <small>* Para visualizar uma de suas 50 músicas mais ouvidas nos últimos 6 meses.</small> 
+          </div>
+        )}
+        
+        {this.state.token && (
+          <iframe title="Spotify" src={this.state.url} width="300" height="380" allowtransparency="true" allow="encrypted-media"></iframe>
+        )}
+   </div>
+  );
+ }
 }
 
 export default App;
